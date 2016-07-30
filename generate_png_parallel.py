@@ -15,14 +15,14 @@ import platform
 
 
 t = 0
-
+mfig = mlab.figure(size=(600,600))
 
 def gen_png_wrapper(i, f, res, basename, extension='.dat', parallel=False, use_processes=2, folder='.', header_lines=0):
     if parallel:
         f_args = []
         for k in range(i, f):
             f_args.append([res, basename+"%05d"%(k,), extension, header_lines])
-        print f_args
+        #print f_args
         p = Pool(processes=use_processes)
         try:
             output = p.map(gen_png, f_args)
@@ -55,6 +55,9 @@ def gen_png(*args):
         print "Wrong number or type of arguments, aborting"
         return (-1)
 
+    global mfig
+    mfig.scene.disable_render = True
+
     #fig = plt.figure()
     #ax = fig.add_subplot(111, projection='3d')
     data = np.loadtxt(f_name+extension, skiprows=header_lines)
@@ -77,17 +80,13 @@ def gen_png(*args):
     # print np.amin(rho), np.amax(rho), rho
     # print np.amin(norm_rho), np.amax(norm_rho), norm_rho
 
-    if not platform.uname()[0] == 'Darwin':
-        mlab.options.offscreen = True # *** non usare su Mac ***
-
-    fig = mlab.figure(size=(600,600))
-    p = mlab.points3d(data[::res,0], data[::res,1], data[::res,2], rho, colormap='hot', mode='sphere', scale_factor=6, scale_mode='none')
+    mfig.scene.disable_render = False
+    p = mlab.points3d(data[::res,0], data[::res,1], data[::res,2], rho, colormap='hot', mode='sphere')
     mlab.view(-45.0,90.0)
-    print mlab.view()
     mlab.colorbar()
     # mlab.show()
-    mlab.savefig(f_name+'.png', figure=fig)
-    mlab.close(fig)
+    mlab.savefig(f_name+'.png')
+    mlab.clf(mfig)
 
     # rho = data[::res,-2]
     # norm_rho = np.zeros(rho.shape)
@@ -153,7 +152,7 @@ if __name__ == '__main__':
     parser.add_argument("-p", "--processes", type=int, default=2, help="Number of processes used to speed up the job if option \"-m\" has been specified, defaults to 4.")
     parser.add_argument("-e", "--extension", type=str, default=".dat", help="Extension of the files, defaults to \".dat\".")
     parser.add_argument("-s", "--skipheaderlines", type=int, default=0, help="Skip the first s lines of the data files.")
-    parser.add_argument("-c", "--convert", action='store_true', help="Convert all the resulting png files to a gif.[Not in use as of now]")
+    #parser.add_argument("--show", type="store_true", help="Stops each time to show each image.")
     args = parser.parse_args()
 
     args.end_index += 1

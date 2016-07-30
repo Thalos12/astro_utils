@@ -3,26 +3,23 @@ import sys
 import os
 from multiprocessing import Pool
 import numpy as np
-#import matplotlib
-#matplotlib.use('AGG')
-#import matplotlib.pyplot as plt
-#from mpl_toolkits.mplot3d import Axes3D
-#from matplotlib.patches import Circle
-#import mpl_toolkits.mplot3d.art3d as art3d
-#from matplotlib.colors import LogNorm
-from mayavi import mlab
-import platform
+import matplotlib
+matplotlib.use('AGG')
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.patches import Circle
+import mpl_toolkits.mplot3d.art3d as art3d
+from matplotlib.colors import LogNorm
+
 
 
 t = 0
-mfig = mlab.figure(size=(600,600))
 
 def gen_png_wrapper(i, f, res, basename, extension='.dat', parallel=False, use_processes=2, folder='.', header_lines=0):
     if parallel:
         f_args = []
         for k in range(i, f):
             f_args.append([res, basename+"%05d"%(k,), extension, header_lines])
-        #print f_args
         p = Pool(processes=use_processes)
         try:
             output = p.map(gen_png, f_args)
@@ -55,11 +52,11 @@ def gen_png(*args):
         print "Wrong number or type of arguments, aborting"
         return (-1)
 
-    global mfig
-    mfig.scene.disable_render = True
-
     data = np.loadtxt(f_name+extension, skiprows=header_lines)
     header = np.genfromtxt(f_name+extension, max_rows=4)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
 
     global t
     t += header[-1]
@@ -71,21 +68,40 @@ def gen_png(*args):
     data = np.delete(data, to_delete, axis=0)
 
     rho = data[::res,-2]
-    # norm_rho = np.zeros(rho.shape)
+    norm_rho = np.zeros(rho.shape)
     # print np.amin(rho), np.amax(rho)
-    # for i in range(0, np.shape(rho)[0]):
-    #     norm_rho[i] = (rho[i]-np.amin(rho))/(np.amax(rho)-np.amin(rho))
+    for i in range(0, np.shape(rho)[0]):
+        norm_rho[i] = (rho[i]-np.amin(rho))/(np.amax(rho)-np.amin(rho))
     # print np.amin(rho), np.amax(rho), rho
     # print np.amin(norm_rho), np.amax(norm_rho), norm_rho
+    norm = LogNorm(vmin=np.amin(rho), vmax=np.amax(rho), clip=False)
 
-    mfig.scene.disable_render = False
-    p = mlab.points3d(data[::res,0], data[::res,1], data[::res,2], rho, colormap='hot', mode='sphere')
-    mlab.view(-45.0,90.0)
-    mlab.colorbar()
-    # mlab.show()
-    mlab.savefig(f_name+'.png')
-    mlab.clf(mfig)
+    radius = np.amax(data[::res,2])
+    circle1 = Circle((0,0), radius)
+    circle1.set_fill(True)
+    circle1.set_edgecolor('red')
+    circle1.set_fc('grey')
+    circle1.set_alpha(0.5)
+    ax.add_patch(circle1)
+    art3d.pathpatch_2d_to_3d(circle1, z=0, zdir="y")
 
+    s = ax.scatter(data[::res,0], data[::res,1], data[::res,2], norm=norm, cmap='hot', c=rho, marker='.')
+    ax.text2D(0.05, 0.95, '{} myr; {} myr'.format(t,dt), transform=ax.transAxes)
+    ax.set_ylim(ax.get_xlim())
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
+    fig.colorbar(s, shrink=0.5, aspect=5)
+
+    # circle2 = Circle((0,0), radius)
+    # circle2.set_fill(False)
+    # circle2.set_edgecolor('red')
+    # ax.add_patch(circle2)
+    # art3d.pathpatch_2d_to_3d(circle2, z=0, zdir="x")
+
+    plt.savefig(f_name+'.png', dpi=300, papertype='a4')
+    #plt.show()
+    plt.close(fig)
     return (f_name, 0)
 
 

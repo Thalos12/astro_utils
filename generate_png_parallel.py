@@ -5,10 +5,15 @@ from multiprocessing import Pool
 import numpy as np
 from mayavi import mlab
 import platform
+import maxmin
 
 
 t = 0
 mfig = mlab.figure(size=(600,600))
+global dmin
+dmin = 0
+global dmax
+dmax = 0
 
 def gen_png_wrapper(i, f, res, basename, extension='.dat', parallel=False, use_processes=2, folder='.', header_lines=0):
     if parallel:
@@ -66,7 +71,11 @@ def gen_png(*args):
     rho = data[::res,-2]
 
     mfig.scene.disable_render = False
-    p = mlab.points3d(data[::res,0], data[::res,1], data[::res,2], rho, colormap='hot', mode='sphere')
+
+    global dmin
+    global dmax
+
+    p = mlab.points3d(data[::res,0], data[::res,1], data[::res,2], rho, colormap='hot', mode='sphere', vmin=dmin, vmax=dmax)
     mlab.view(-45.0,90.0)
     mlab.colorbar()
     # mlab.show()
@@ -112,6 +121,9 @@ if __name__ == '__main__':
     if not os.path.isfile(args.basename+"%05d"%(args.start_index,)+args.extension):
         print "File {} does not exixts.".format(args.basename+"%05d"%(args.start_index,)+args.extension)
         sys.exit(1)
+    global dmin
+    global dmax
+    dmin, dmax = maxmin.maxmin(args.start_index, args.end_index, args.basename, args.skipheaderlines, args.resolution)
 
     gen_png_wrapper(i=args.start_index, f=args.end_index, res=args.resolution, basename=args.basename,
                     extension=args.extension, parallel=args.multiprocessing, use_processes=args.processes, header_lines=args.skipheaderlines)

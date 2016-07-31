@@ -12,8 +12,8 @@ import mpl_toolkits.mplot3d.art3d as art3d
 from matplotlib.colors import LogNorm
 
 
-
 t = 0
+
 
 def gen_png_wrapper(i, f, res, basename, extension='.dat', parallel=False, use_processes=2, folder='.', header_lines=0):
     if parallel:

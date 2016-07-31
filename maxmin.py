@@ -8,8 +8,8 @@ def maxmin(initial,final,basename,sk,res):
         path=basename+'%05d'%(i,)
         data=np.genfromtxt(path,skip_header=sk)
         density=data[::res,-2]
-        mindens_temp=np.amin(density)
-        maxdens_temp=np.amax(density)
+        mindens_temp = np.amin(density)
+        maxdens_temp = np.amax(density)
         if i==initial:
             maxdens=maxdens_temp
             mindens=mindens_temp

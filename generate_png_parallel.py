@@ -3,13 +3,6 @@ import sys
 import os
 from multiprocessing import Pool
 import numpy as np
-#import matplotlib
-#matplotlib.use('AGG')
-#import matplotlib.pyplot as plt
-#from mpl_toolkits.mplot3d import Axes3D
-#from matplotlib.patches import Circle
-#import mpl_toolkits.mplot3d.art3d as art3d
-#from matplotlib.colors import LogNorm
 from mayavi import mlab
 import platform
 
@@ -71,12 +64,6 @@ def gen_png(*args):
     data = np.delete(data, to_delete, axis=0)
 
     rho = data[::res,-2]
-    # norm_rho = np.zeros(rho.shape)
-    # print np.amin(rho), np.amax(rho)
-    # for i in range(0, np.shape(rho)[0]):
-    #     norm_rho[i] = (rho[i]-np.amin(rho))/(np.amax(rho)-np.amin(rho))
-    # print np.amin(rho), np.amax(rho), rho
-    # print np.amin(norm_rho), np.amax(norm_rho), norm_rho
 
     mfig.scene.disable_render = False
     p = mlab.points3d(data[::res,0], data[::res,1], data[::res,2], rho, colormap='hot', mode='sphere')
@@ -115,7 +102,6 @@ if __name__ == '__main__':
     parser.add_argument("-p", "--processes", type=int, default=2, help="Number of processes used to speed up the job if option \"-m\" has been specified, defaults to 4.")
     parser.add_argument("-e", "--extension", type=str, default=".dat", help="Extension of the files, defaults to \".dat\".")
     parser.add_argument("-s", "--skipheaderlines", type=int, default=0, help="Skip the first s lines of the data files.")
-    #parser.add_argument("--show", type="store_true", help="Stops each time to show each image.")
     args = parser.parse_args()
 
     args.end_index += 1

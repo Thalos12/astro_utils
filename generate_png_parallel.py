@@ -13,11 +13,6 @@ mfig = mlab.figure(size=(600,600))
 dmax, dmin = 0, 0
 
 def gen_png_wrapper(i, f, res, basename, extension='.dat', parallel=False, use_processes=2, folder='.', header_lines=0):
-    if '/' in basename:
-        base = basename.split('/')[-1]
-    title = base.split('.')[0]
-    print "Title: ", title
-    mlab.title(title)
     if parallel:
         f_args = []
         for k in range(i, f):
@@ -78,6 +73,11 @@ def gen_png(*args):
     p = mlab.points3d(data[::res,0], data[::res,1], data[::res,2], rho, colormap='hot', mode='sphere', vmax=dmax, vmin=dmin)
     mlab.view(-45.0, 90.0)
     mlab.colorbar()
+    if '/' in f_name: # ottengo il titolo
+        base = f_name.split('/')[-1]
+    title = base.split('.')[0]
+    print "Title: ", title
+    mlab.title(title)
     # mlab.show()
     mlab.savefig(f_name+'.png')
     mlab.clf(mfig)

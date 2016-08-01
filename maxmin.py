@@ -4,7 +4,7 @@ import argparse
 
 def maxmin(initial,final,basename,sk,res):
     maxdens,mindens=0,0
-    for i in range(initial,final+1):
+    for i in range(initial,final):
         path=basename+'%05d'%(i,)
         data=np.genfromtxt(path,skip_header=sk)
         density=data[::res,-2]

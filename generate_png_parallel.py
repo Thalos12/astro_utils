@@ -67,16 +67,19 @@ def gen_png(*args):
 
     global dmax
     global dmin
-    mlab.points3d(data[::res,0], data[::res,1], data[::res,2], rho, colormap='hot', mode='sphere', vmax=dmax, vmin=dmin)
-    mlab.colorbar()
-    #mlab.axes(nb_labels=0)
-    mlab.text3d(0,0,0, "time:{}\ndt:{}".format(t,dt))
+    mlab.points3d(data[::res,0], data[::res,1], data[::res,2], rho, colormap='hot', mode='sphere', vmax=dmax, vmin=dmin, )
+    cbar = mlab.colorbar(title="Density", orientation='horizontal', nb_labels=6)
+    mlab.text(0.10, 0.90, "time:{}  dt:{}".format(t,dt), figure=mfig, width=0.2)
     if '/' in f_name: # ottengo il titolo
         base = f_name.split('/')[-1]
+    else:
+        base=f_name
     title = base.split('.')[0]
     #print "Title: ", title
-    mlab.title(title, height=0.95, size=0.5)
-    mlab.outline()
+    mlab.text(0.70, 0.90, title, width=0.2)
+    outline = mlab.outline()
+    outline.outline_mode = 'cornered'
+    # mlab.axes(y_axis_visibility=False, z_axis_visibility=False)
     mlab.view(-45.0, 90.0, distance='auto') # imposto l'angolo di visione dell'insieme dei dati
     # mlab.show()
     mlab.savefig(f_name+'.png')
@@ -85,9 +88,9 @@ def gen_png(*args):
     return (f_name, 0)
 
 
-def gen_multiple_data(start_n_file, end_n_file, n_particles, basename):
+def gen_multiple_data(start_n_file, end_n_file, n_particles, basename, extension=''):
     for i in range(start_n_file, end_n_file):
-        gen_data(n_particles, basename+"%05d"%(i,)+'.dat')
+        gen_data(n_particles, basename+"%05d"%(i,)+extension)
 
 
 def gen_data(particles, filename):
@@ -116,7 +119,7 @@ if __name__ == '__main__':
     args.end_index += 1 # serve per fare il png di tutti i file
 
     if args.generate_data: # genera file con dati random per provare o script
-        gen_multiple_data(start_n_file=args.start_index, end_n_file=args.end_index, n_particles=10000, basename=args.basename)
+        gen_multiple_data(start_n_file=args.start_index, end_n_file=args.end_index, n_particles=10000, basename=args.basename, extension=args.extension)
 
     if not os.path.isfile(args.basename+"%05d"%(args.start_index,)+args.extension): # verifica che ci sia almeno il primo file
         print "File {} does not exixts.".format(args.basename+"%05d"%(args.start_index,)+args.extension)

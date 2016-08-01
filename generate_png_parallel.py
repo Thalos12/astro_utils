@@ -1,29 +1,25 @@
-import argparse
-import sys
+# -*- coding: utf-8 -*-
 import os
+import sys
+import argparse
+import logging
 from multiprocessing import Pool
 import numpy as np
-import logging
 from mayavi import mlab
 import maxmin
 
-
-t = 0
-mfig = mlab.figure(size=(600,600))
-dmax, dmin = 0, 0
 
 def gen_png_wrapper(i, f, res, basename, extension='.dat', parallel=False, use_processes=2, folder='.', header_lines=0):
     if parallel:
         f_args = []
         for k in range(i, f):
             f_args.append([res, basename+"%05d"%(k,), extension, header_lines])
-        #print f_args
+        # print f_args
         p = Pool(processes=use_processes)
         try:
             output = p.map(gen_png, f_args)
         except:
             print 'Something went wrong, please do not use multiprocessing.'
-
     else:
         output = []
         for k in range(i, f):
@@ -48,18 +44,19 @@ def gen_png(*args):
         header_lines = args[3]
     else:
         print "Wrong number or type of arguments, aborting"
-        return (-1)
+        return (f_name, -1)
 
     global mfig
-    mfig.scene.disable_render = True
+    mfig.scene.disable_render = True # serve per risparmiare un po' di risorse
 
-    data = np.loadtxt(f_name+extension, skiprows=header_lines)
-    header = np.genfromtxt(f_name+extension, max_rows=4)
+    data = np.loadtxt(f_name+extension, skiprows=header_lines) # ottengo i dati
+    header = np.genfromtxt(f_name+extension, max_rows=4) # salvo le righe di header
 
     global t
     t += header[-1]
     dt = header[-1]
-    to_delete = []
+
+    to_delete = [] # il ciclo che segue serve a creare la "fetta vuota" nel plot
     for i in range(0, data.shape[0]):
         if (data[i,1] < 0 and data[i,0] >0):
             to_delete.append(i)
@@ -70,14 +67,17 @@ def gen_png(*args):
 
     global dmax
     global dmin
-    p = mlab.points3d(data[::res,0], data[::res,1], data[::res,2], rho, colormap='hot', mode='sphere', vmax=dmax, vmin=dmin)
-    mlab.view(-45.0, 90.0)
+    mlab.points3d(data[::res,0], data[::res,1], data[::res,2], rho, colormap='hot', mode='sphere', vmax=dmax, vmin=dmin)
     mlab.colorbar()
+    #mlab.axes(nb_labels=0)
+    mlab.text3d(0,0,0, "time:{}\ndt:{}".format(t,dt))
     if '/' in f_name: # ottengo il titolo
         base = f_name.split('/')[-1]
     title = base.split('.')[0]
-    print "Title: ", title
-    mlab.title(title)
+    #print "Title: ", title
+    mlab.title(title, height=0.95, size=0.5)
+    mlab.outline()
+    mlab.view(-45.0, 90.0, distance='auto') # imposto l'angolo di visione dell'insieme dei dati
     # mlab.show()
     mlab.savefig(f_name+'.png')
     mlab.clf(mfig)
@@ -113,16 +113,20 @@ if __name__ == '__main__':
     parser.add_argument("-s", "--skipheaderlines", type=int, default=0, help="Skip the first s lines of the data files.")
     args = parser.parse_args()
 
-    args.end_index += 1
+    args.end_index += 1 # serve per fare il png di tutti i file
 
-    if args.generate_data:
+    if args.generate_data: # genera file con dati random per provare o script
         gen_multiple_data(start_n_file=args.start_index, end_n_file=args.end_index, n_particles=10000, basename=args.basename)
 
-    if not os.path.isfile(args.basename+"%05d"%(args.start_index,)+args.extension):
+    if not os.path.isfile(args.basename+"%05d"%(args.start_index,)+args.extension): # verifica che ci sia almeno il primo file
         print "File {} does not exixts.".format(args.basename+"%05d"%(args.start_index,)+args.extension)
         sys.exit(1)
 
-    dmax, dmin = maxmin.maxmin(args.start_index, args.end_index, args.basename, args.skipheaderlines, args.resolution)
+    dmax, dmin = maxmin.maxmin(args.start_index, args.end_index, args.basename, args.skipheaderlines, args.resolution) # calcolo massimo e minimo della densità
+
+    t = 0 # memorizza il tempo totale della simulazione
+
+    mfig = mlab.figure(size=(800,800)) # inizializzo una figura
 
     gen_png_wrapper(i=args.start_index, f=args.end_index, res=args.resolution, basename=args.basename,
                     extension=args.extension, parallel=args.multiprocessing, use_processes=args.processes, header_lines=args.skipheaderlines)

@@ -9,11 +9,12 @@ from mayavi import mlab
 import maxmin
 
 
+# questa funzione serve per usare il codice in parallelo o meno
 def gen_png_wrapper(i, f, res, basename, extension='.dat', parallel=False, use_processes=2, folder='.', header_lines=0):
     if parallel:
         f_args = []
         for k in range(i, f):
-            f_args.append([res, basename+"%05d"%(k,), extension, header_lines])
+            f_args.append([res, basename+"%05d"%(k,), extension, header_lines])  # creo una lista da dare in pasto al metodo map del Pool
         # print f_args
         p = Pool(processes=use_processes)
         try:
@@ -30,6 +31,7 @@ def gen_png_wrapper(i, f, res, basename, extension='.dat', parallel=False, use_p
         print o
 
 
+# funzione che da in output i file .png
 def gen_png(*args):
     if len(args) == 1:
         if len(args[0]) == 4:
@@ -47,16 +49,16 @@ def gen_png(*args):
         return (f_name, -1)
 
     global mfig
-    mfig.scene.disable_render = True # serve per risparmiare un po' di risorse
+    mfig.scene.disable_render = True  # serve per risparmiare un po' di risorse
 
-    data = np.loadtxt(f_name+extension, skiprows=header_lines) # ottengo i dati
-    header = np.genfromtxt(f_name+extension, max_rows=4) # salvo le righe di header
+    data = np.loadtxt(f_name+extension, skiprows=header_lines)
+    header = np.genfromtxt(f_name+extension, max_rows=4)  # salvo le righe di header per t e dt
 
     global t
     t += header[-1]
     dt = header[-1]
 
-    to_delete = [] # il ciclo che segue serve a creare la "fetta vuota" nel plot
+    to_delete = []  # il ciclo che segue serve a creare la "fetta vuota" nel plot
     for i in range(0, data.shape[0]):
         if (data[i,1] < 0 and data[i,0] >0):
             to_delete.append(i)
@@ -67,32 +69,37 @@ def gen_png(*args):
 
     global dmax
     global dmin
-    mlab.points3d(data[::res,0], data[::res,1], data[::res,2], rho, colormap='hot', mode='sphere', vmax=dmax, vmin=dmin, )
-    cbar = mlab.colorbar(title="Density", orientation='horizontal', nb_labels=6)
-    mlab.text(0.10, 0.90, "time:{}  dt:{}".format(t,dt), figure=mfig, width=0.2)
-    if '/' in f_name: # ottengo il titolo
+    mlab.points3d(data[::res,0], data[::res,1], data[::res,2], rho, colormap='hot', mode='sphere', vmax=dmax, vmin=dmin)  # posiziono i punti in 3d
+    mlab.colorbar(title="Density", orientation='horizontal', nb_labels=6)  # faccio apparire la colorbar
+    mlab.text(0.10, 0.90, "time:{}  dt:{}".format(t, dt), figure=mfig, width=0.2)  # aggiungo le scritte con tempo e dt
+
+    if '/' in f_name:  # ottengo il nome della simulazione
         base = f_name.split('/')[-1]
     else:
-        base=f_name
-    title = base.split('.')[0]
-    #print "Title: ", title
+        base = f_name
+    title = base.split('.')[0]  # ottengo la parte prima di tutti i punti: SIM.column.00xxx -> SIM
+    # print "Title: ", title
     mlab.text(0.70, 0.90, title, width=0.2)
+
+    mlab.axes(nb_labels=5, x_axis_visibility=False, z_axis_visibility=False)
     outline = mlab.outline()
     outline.outline_mode = 'cornered'
     # mlab.axes(y_axis_visibility=False, z_axis_visibility=False)
-    mlab.view(-45.0, 90.0, distance='auto') # imposto l'angolo di visione dell'insieme dei dati
+    mlab.view(-45.0, 90.0, distance='auto')  # imposto l'angolo di visione dell'insieme dei dati
     # mlab.show()
     mlab.savefig(f_name+'.png')
-    mlab.clf(mfig)
+    mlab.clf(mfig)  # pulisco la figura per prepararla al prossimo set di dati
 
     return (f_name, 0)
 
 
+# funzione che chiama il generatore di png per tutti i file
 def gen_multiple_data(start_n_file, end_n_file, n_particles, basename, extension=''):
     for i in range(start_n_file, end_n_file):
         gen_data(n_particles, basename+"%05d"%(i,)+extension)
 
 
+# genera set di dati casuali in forma array(x, y, z, rho)
 def gen_data(particles, filename):
     d = np.zeros((particles, 4))
     for i in range(particles):
@@ -125,7 +132,10 @@ if __name__ == '__main__':
         print "File {} does not exixts.".format(args.basename+"%05d"%(args.start_index,)+args.extension)
         sys.exit(1)
 
-    dmax, dmin = maxmin.maxmin(args.start_index, args.end_index, args.basename, args.skipheaderlines, args.resolution) # calcolo massimo e minimo della densità
+    dmax, dmin = maxmin.gen_maxmin_dat(args.start_index, args.end_index, args.basename, args.skipheaderlines, args.resolution) # calcolo massimo e minimo della densità
+    print "Finished calculating maximum ({}) and minimum ({}) density.".format(dmax,dmin)
+
+    # sys.exit()
 
     t = 0 # memorizza il tempo totale della simulazione
 

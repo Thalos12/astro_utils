@@ -1,8 +1,10 @@
+# -*- coding: utf-8 -*-
 import numpy as np
 import argparse
+import os
 
 
-def maxmin(initial,final,basename,sk,res):
+def maxmin(initial, final, basename, sk, res):
     maxdens,mindens=0,0
     for i in range(initial,final):
         path=basename+'%05d'%(i,)
@@ -20,6 +22,37 @@ def maxmin(initial,final,basename,sk,res):
                 maxdens=maxdens_temp
 
     return (maxdens,mindens)
+
+
+# serve per scrivere il file maxmin.dat o, se è già presente, per leggerlo e ritornare i valori
+def gen_maxmin_dat(initial, final, basename, sk, res):
+    if '/' in basename: # questo ciclo serve per prendere il path giusto per il maxmin.dat
+        b = basename.split('/')
+        b[-1] = 'maxmin.dat'
+        n = '/'.join(b)
+    else:
+        n = 'maxmin.dat'
+    if os.path.isfile(n):
+        print "File maxmin.dat found."
+        with open(n,'r') as f:
+            dat = f.readlines()
+        print "Initial: {}Final: {}Basename: {}Resolution: {}Maxdens: {}Mindens: {}".format(dat[0], dat[1], dat[2], dat[3], dat[4], dat[5])
+        gen = raw_input("Generate new maxmin.dat file or use current one? [new/current]\n---> ")
+        if gen == 'current' or gen=='c':
+            with open(n,'r') as f:
+                data = f.readlines()
+            maxdens = data[-2].rstrip()
+            mindens = data[-1].rstrip()
+            return (maxdens, mindens)
+
+    print "Generating a new maxmin.dat"
+    maxdens, mindens = maxmin(initial, final, basename, sk, res)
+    data = [initial, final-1, basename, res, maxdens, mindens]
+    with open(n,'w') as f:
+        for e in data:
+            f.write(str(e)+'\n')
+    return (maxdens,mindens)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

@@ -7,7 +7,7 @@ import time
 import platform
 from multiprocessing import Pool
 import numpy as np
-import maxmin as maxmin
+import maxmin
 import math as m
 
 
@@ -84,7 +84,7 @@ def gen_png(*args):
     # print "Title: ", title
     #mlab.text(0.70, 0.90, title, width=0.2, figure=mfig)
     fig_title = '{}    t = {}     dt = {}'.format(title,t,dt)
-   
+
 
     mlab.axes(nb_labels=5, x_axis_visibility=False, z_axis_visibility=False,ranges=[-120.0,120.0,-120.0,120.0,-120.0,120.0], figure=mfig)
     outline = mlab.outline(figure=mfig)

@@ -3,9 +3,9 @@ import os
 import sys
 import argparse
 import logging
+import time
 from multiprocessing import Pool
 import numpy as np
-from mayavi import mlab
 import maxmin
 
 
@@ -17,10 +17,7 @@ def gen_png_wrapper(i, f, res, basename, extension='.dat', parallel=False, use_p
             f_args.append([res, basename+"%05d"%(k,), extension, header_lines])  # creo una lista da dare in pasto al metodo map del Pool
         # print f_args
         p = Pool(processes=use_processes)
-        try:
-            output = p.map(gen_png, f_args)
-        except:
-            print 'Something went wrong, please do not use multiprocessing.'
+        output = p.map(gen_png, f_args)
     else:
         output = []
         for k in range(i, f):
@@ -48,9 +45,6 @@ def gen_png(*args):
         print "Wrong number or type of arguments, aborting"
         return (f_name, -1)
 
-    global mfig
-    mfig.scene.disable_render = True  # serve per risparmiare un po' di risorse
-
     data = np.loadtxt(f_name+extension, skiprows=header_lines)
     header = np.genfromtxt(f_name+extension, max_rows=4)  # salvo le righe di header per t e dt
 
@@ -65,12 +59,16 @@ def gen_png(*args):
     data = np.delete(data, to_delete, axis=0)
     rho = data[::res,-2]
 
-    mfig.scene.disable_render = False
+    from mayavi import mlab
+
+
+    mfig = mlab.figure(size=(800,800)) # inizializzo una figura
 
     global dmax
     global dmin
-    mlab.points3d(data[::res,0], data[::res,1], data[::res,2], rho, colormap='hot', mode='sphere', vmax=dmax, vmin=dmin)  # posiziono i punti in 3d
-    mlab.colorbar(title="Density", orientation='horizontal', nb_labels=6)  # faccio apparire la colorbar
+
+    mlab.points3d(data[::res,0], data[::res,1], data[::res,2], rho, colormap='hot', mode='sphere', vmax=dmax, vmin=dmin, figure=mfig)  # posiziono i punti in 3d
+    mlab.colorbar(title="Density", orientation='horizontal', nb_labels=6)  # faccio apparire la colorbar
     mlab.text(0.10, 0.90, "time:{}  dt:{}".format(t, dt), figure=mfig, width=0.2)  # aggiungo le scritte con tempo e dt
 
     if '/' in f_name:  # ottengo il nome della simulazione
@@ -79,16 +77,16 @@ def gen_png(*args):
         base = f_name
     title = base.split('.')[0]  # ottengo la parte prima di tutti i punti: SIM.column.00xxx -> SIM
     # print "Title: ", title
-    mlab.text(0.70, 0.90, title, width=0.2)
+    mlab.text(0.70, 0.90, title, width=0.2, figure=mfig)
 
-    mlab.axes(nb_labels=5, x_axis_visibility=False, z_axis_visibility=False)
-    outline = mlab.outline()
+    mlab.axes(nb_labels=5, x_axis_visibility=False, z_axis_visibility=False, figure=mfig)
+    outline = mlab.outline(figure=mfig)
     outline.outline_mode = 'cornered'
     # mlab.axes(y_axis_visibility=False, z_axis_visibility=False)
-    mlab.view(-45.0, 90.0, distance='auto')  # imposto l'angolo di visione dell'insieme dei dati
+    mlab.view(-45.0, 90.0, distance='auto', figure=mfig)  # imposto l'angolo di visione dell'insieme dei dati
     # mlab.show()
-    mlab.savefig(f_name+'.png')
-    mlab.clf(mfig)  # pulisco la figura per prepararla al prossimo set di dati
+    mlab.savefig(f_name+'.png', figure=mfig)
+    mlab.close(mfig)  # chiudo la figura per liberare memoria
 
     return (f_name, 0)
 
@@ -121,6 +119,7 @@ if __name__ == '__main__':
     parser.add_argument("-p", "--processes", type=int, default=2, help="Number of processes used to speed up the job if option \"-m\" has been specified, defaults to 4.")
     parser.add_argument("-e", "--extension", type=str, default=".dat", help="Extension of the files, defaults to \".dat\".")
     parser.add_argument("-s", "--skipheaderlines", type=int, default=0, help="Skip the first s lines of the data files.")
+    parser.add_argument("-t", "--time", action="store_true", help="Keeps track of the time taken by the script.")
     args = parser.parse_args()
 
     args.end_index += 1 # serve per fare il png di tutti i file
@@ -139,7 +138,11 @@ if __name__ == '__main__':
 
     t = 0 # memorizza il tempo totale della simulazione
 
-    mfig = mlab.figure(size=(800,800)) # inizializzo una figura
+    if args.time:
+        t_init = time.time()
 
     gen_png_wrapper(i=args.start_index, f=args.end_index, res=args.resolution, basename=args.basename,
                     extension=args.extension, parallel=args.multiprocessing, use_processes=args.processes, header_lines=args.skipheaderlines)
+
+    if args.time:
+        print "Time taken:", time.time()-t_init

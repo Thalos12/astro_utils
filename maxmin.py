@@ -20,6 +20,7 @@ def maxmin(initial, final, basename, sk, res):
                 mindens=mindens_temp
             if maxdens_temp>maxdens:
                 maxdens=maxdens_temp
+        print "Iteration n°",i,"of",final-1,"Completed."
 
     return (maxdens,mindens)
 

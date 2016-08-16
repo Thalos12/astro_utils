@@ -4,11 +4,9 @@ import sys
 import argparse
 import logging
 import time
-import platform
 from multiprocessing import Pool
 import numpy as np
-import maxmin_new as maxmin
-import math as m
+import maxmin
 
 
 # questa funzione serve per usare il codice in parallelo o meno
@@ -60,21 +58,18 @@ def gen_png(*args):
             to_delete.append(i)
     data = np.delete(data, to_delete, axis=0)
     rho = data[::res,-2]
-    logrho=[m.log10(float(i)) for i in rho]
 
     from mayavi import mlab
 
-    if platform.system == 'Linux':
-        mlab.options.offscreen = True
 
     mfig = mlab.figure(size=(800,800)) # inizializzo una figura
 
     global dmax
     global dmin
 
-    mlab.points3d(data[::res,0], data[::res,1], data[::res,2], logrho, colormap='jet', mode='sphere',scale_mode='none',scale_factor=8, vmax=dmax, vmin=dmin)  # posiziono i punti in 3d
-    mlab.colorbar(title="Density", orientation='horizontal', nb_labels=6)  # faccio apparire la colorbar
-   #mlab.text(0.10, 0.90, "time:{}  dt:{}".format(t, dt), figure=mfig, width=0.2)  # aggiungo le scritte con tempo e dt
+    mlab.points3d(data[::res,0], data[::res,1], data[::res,2], rho, colormap='hot', mode='sphere', vmax=dmax, vmin=dmin, figure=mfig)  # posiziono i punti in 3d
+    mlab.colorbar(title="Density", orientation='horizontal', nb_labels=6)  # faccio apparire la colorbar
+    mlab.text(0.10, 0.90, "time:{}  dt:{}".format(t, dt), figure=mfig, width=0.2)  # aggiungo le scritte con tempo e dt
 
     if '/' in f_name:  # ottengo il nome della simulazione
         base = f_name.split('/')[-1]
@@ -82,17 +77,16 @@ def gen_png(*args):
         base = f_name
     title = base.split('.')[0]  # ottengo la parte prima di tutti i punti: SIM.column.00xxx -> SIM
     # print "Title: ", title
-    #mlab.text(0.70, 0.90, title, width=0.2, figure=mfig)
-    mlab.title('{}    t = {}    dt = {}'.format(title,t,dt),width=0.85)
+    mlab.text(0.70, 0.90, title, width=0.2, figure=mfig)
 
-    mlab.axes(nb_labels=5, x_axis_visibility=False, z_axis_visibility=False,ranges=[-120.0,120.0,-120.0,120.0,-120.0,120.0], figure=mfig)
+    mlab.axes(nb_labels=5, x_axis_visibility=False, z_axis_visibility=False, figure=mfig)
     outline = mlab.outline(figure=mfig)
     outline.outline_mode = 'cornered'
     # mlab.axes(y_axis_visibility=False, z_axis_visibility=False)
-    mlab.view(-45.0, 90.0, distance=1000)  # imposto l'angolo di visione dell'insieme dei dati
+    mlab.view(-45.0, 90.0, distance='auto', figure=mfig)  # imposto l'angolo di visione dell'insieme dei dati
     # mlab.show()
     mlab.savefig(f_name+'.png', figure=mfig)
-    mlab.close(mfig)  # pulisco la figura per prepararla al prossimo set di dati
+    mlab.close(mfig)  # chiudo la figura per liberare memoria
 
     return (f_name, 0)
 
@@ -138,8 +132,6 @@ if __name__ == '__main__':
         sys.exit(1)
 
     dmax, dmin = maxmin.gen_maxmin_dat(args.start_index, args.end_index, args.basename, args.skipheaderlines, args.resolution) # calcolo massimo e minimo della densità
-    dmax=m.log10(float(dmax))
-    dmin=m.log10(float(dmin))
     print "Finished calculating maximum ({}) and minimum ({}) density.".format(dmax,dmin)
 
     # sys.exit()

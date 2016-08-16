@@ -74,7 +74,7 @@ def gen_png(*args):
 
     mlab.points3d(data[::res,0], data[::res,1], data[::res,2], logrho, colormap='jet', mode='sphere',scale_mode='none',scale_factor=8, vmax=dmax, vmin=dmin)  # posiziono i punti in 3d
     mlab.colorbar(title="Density", orientation='horizontal', nb_labels=6)  # faccio apparire la colorbar
-   #mlab.text(0.10, 0.90, "time:{}  dt:{}".format(t, dt), figure=mfig, width=0.2)  # aggiungo le scritte con tempo e dt
+    mlab.text(0.10, 0.90, "time:{}  dt:{}".format(t, dt), figure=mfig, width=0.2)  # aggiungo le scritte con tempo e dt
 
     if '/' in f_name:  # ottengo il nome della simulazione
         base = f_name.split('/')[-1]
@@ -82,8 +82,7 @@ def gen_png(*args):
         base = f_name
     title = base.split('.')[0]  # ottengo la parte prima di tutti i punti: SIM.column.00xxx -> SIM
     # print "Title: ", title
-    #mlab.text(0.70, 0.90, title, width=0.2, figure=mfig)
-    mlab.title('{}    t = {}    dt = {}'.format(title,t,dt),width=0.85)
+    mlab.text(0.70, 0.90, title, width=0.2, figure=mfig)
 
     mlab.axes(nb_labels=5, x_axis_visibility=False, z_axis_visibility=False,ranges=[-120.0,120.0,-120.0,120.0,-120.0,120.0], figure=mfig)
     outline = mlab.outline(figure=mfig)

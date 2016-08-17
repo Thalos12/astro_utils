@@ -28,7 +28,7 @@ def gen_png_wrapper(i, f, res, basename, extension='.dat', parallel=False, use_p
     dt = header[-1]
     to_delete = []  # il ciclo che segue serve a creare la "fetta vuota" nel plot
     for p in range(0, data.shape[0]):
-        if (data[p,1] < 0 and data[p,0] >0):
+        if (data[p,1] < 0 and data[p,0] > 0):
             to_delete.append(p)
     data = np.delete(data, to_delete, axis=0)
     rho = data[::res,-2]
@@ -36,13 +36,13 @@ def gen_png_wrapper(i, f, res, basename, extension='.dat', parallel=False, use_p
 
     from mayavi import mlab
     mfig=mlab.figure(size=(800,800))
-    points = mlab.points3d(data[::res,0], data[::res,1], data[::res,2], logrho, colormap='jet', mode='sphere',scale_factor=25, vmax=dmax, vmin=dmin)  # posiziono i punti in 3d
+    points = mlab.points3d(data[::res,0], data[::res,1], data[::res,2], logrho, colormap='jet', mode='sphere', scale_factor=8, scale_mode='none', vmax=dmax, vmin=dmin)  # posiziono i punti in 3d
     mlab.colorbar(title="Density", orientation='horizontal', nb_labels=6)  # faccio apparire la colorbar
-    mlab.axes(nb_labels=5, x_axis_visibility=False, z_axis_visibility=False, ranges=[-11000.0,11000.0,-11000.0,11000.0,-11000.0,11000.0], figure=mfig)
+    mlab.axes(nb_labels=5, x_axis_visibility=False, z_axis_visibility=False, ranges=[-120.0,120.0,-120.0,120.0,-120.0,120.0], figure=mfig)
     outline = mlab.outline(figure=mfig)
     outline.outline_mode = 'cornered'
     # mlab.axes(y_axis_visibility=False, z_axis_visibility=False)
-    mlab.view(-45.0, 90.0, distance='auto')  # imposto l'angolo di visione dell'insieme dei dati
+    mlab.view(-45.0, 90.0, distance=800)  # imposto l'angolo di visione dell'insieme dei dati
 
     if '/' in f_name:  # ottengo il nome della simulazione
         base = f_name.split('/')[-1]
@@ -90,5 +90,5 @@ def gen_png_wrapper(i, f, res, basename, extension='.dat', parallel=False, use_p
         print "Finished {} of {}.".format(k,f)
 
 if __name__ == '__main__':
-    #gen_png_wrapper(1, 10, 100, './hydro_energy_eqn_100UA_5M/HYDRO_ISO.column.', '')
-    gen_png_wrapper(1, 10, 100, './freefall_10000UA_1M/ff_10000_1M_00.column.', '')
+    gen_png_wrapper(1, 10, 100, './hydro_energy_eqn_100UA_5M/HYDRO_ISO.column.', '')
+    #gen_png_wrapper(1, 10, 100, './freefall_10000UA_1M/ff_10000_1M_00.column.', '')

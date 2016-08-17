@@ -83,7 +83,7 @@ def gen_png(*args):
     title = base.split('.')[0]  # ottengo la parte prima di tutti i punti: SIM.column.00xxx -> SIM
     # print "Title: ", title
     #mlab.text(0.70, 0.90, title, width=0.2, figure=mfig)
-    fig_title = '{}    t = {}     dt = {}'.format(title,t,dt)
+    fig_title = '{}    t = {:.2E}     dt = {:.2E}'.format(title,t,dt)
 
 
     mlab.axes(nb_labels=5, x_axis_visibility=False, z_axis_visibility=False,ranges=[-120.0,120.0,-120.0,120.0,-120.0,120.0], figure=mfig)
@@ -92,7 +92,7 @@ def gen_png(*args):
     # mlab.axes(y_axis_visibility=False, z_axis_visibility=False)
     mlab.view(-45.0, 90.0, distance=1000)  # imposto l'angolo di visione dell'insieme dei dati
     # mlab.show()
-    mlab.title(fig_title, figure=mfig, size=0.5)
+    mlab.title(fig_title, figure=mfig, size=0.38, height=0.85)
     mlab.savefig(f_name+'.png', figure=mfig)
     mlab.close(mfig)  # pulisco la figura per prepararla al prossimo set di dati
 

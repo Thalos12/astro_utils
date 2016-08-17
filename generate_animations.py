@@ -13,7 +13,6 @@ import math as m
 
 # questa funzione serve per usare il codice in parallelo o meno
 def gen_png_wrapper(i, f, res, basename, extension='.dat', parallel=False, use_processes=2, folder='.', header_lines=4):
-    f = f+1  # serve per includere anche l'ultimo file
     dmax, dmin = maxmin.gen_maxmin_dat(i, f, basename, header_lines, res)  # calcolo massimo e minimo della densità
     dmax = m.log10(float(dmax))
     dmin = m.log10(float(dmin))
@@ -56,7 +55,7 @@ def gen_png_wrapper(i, f, res, basename, extension='.dat', parallel=False, use_p
     mlab.savefig(f_name+'.png', figure=mfig)
     print "Finished {} of {}.".format(i,f)
 
-    for k in range(i+1, f):
+    for k in range(i+1, f+1):
         f_name = basename+"%05d"%(k,)
 
         data = np.loadtxt(f_name+extension, skiprows=header_lines)
